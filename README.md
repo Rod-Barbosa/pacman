@@ -54,75 +54,149 @@ Users should be able to Code/Understand:
 
 ### Links
 
-- Solution Github URL: [https://github.com/Rod-Barbosa/lead-saver-chrome-extension](https://github.com/Rod-Barbosa/lead-saver-chrome-extension)
-- Live Site URL: [https://rodrigo-lead-saver-chrome-extension.netlify.app/](https://rodrigo-lead-saver-chrome-extension.netlify.app/)
-- May hte next one do a better job at translating a browser extension into a website. 
-- If you want to install and see how it works, click the github link, download the files, open your google chrome extensions and point the downloads folder. It should do the trick.
+- Solution Github URL: [https://github.com/Rod-Barbosa/pacman](https://github.com/Rod-Barbosa/pacman)
+- Live Site URL: [https://rodrigo-pacman.netlify.app/](https://rodrigo-pacman.netlify.app/)
+- You win the game at 274 points. Big balls are worth 10pts. Ghosts are worth 100pts. Maybe I'll chang eit in the future, but for now... it is what it is
 
 ## My process
 
 ### Built with
 
 - Semantic HTML5 markup
-- CSS custom properties
+- CSS
 - JavaScript
-- Chrome Dev tools
 
 
 ### What I learned
-Making a chrome extension is much easier than it looks like.
 
-To see how you can add code snippets, see below:
-
-This is the only "hard coded" part of my html list of leads
-```html
-        <ul id="ul-el">
-        </ul>
-```
-The list is rendered dynamicly, after being turned into a string. The string conversion happens for performance purposes, given that innerHTML is taxing. Changing the DOM is never free, and keeping performance costs to a minimum is always a good idea
-```js
-function render(leads) {
-    let listItems = ""
-    for (let i = 0; i < leads.length; i++) {
-        listItems += `
-            <li>
-                <a target='_blank' href='${leads[i]}'>
-                    ${leads[i]}
-                </a>
-            </li>
-        `
+The new way of capturing keypresses works with returned values like strings: "ArrowUp" instead of values like 39. It is a combination of listening to "keydown" events and using the e.key property
+```javascript
+document.addEventListener("keydown", control)
+function control(e){
+    console.log(e.key)
+    switch (e.key){
+        case "ArrowDown":
+            //code here
+        break;
+        case "ArrowUp":
+            //code here
+        break;
+        case "ArrowLeft":
+            //code here
+        break;
+        case "ArrowRight":
+            //code here
+        break;
+        default:
+        return;
     }
-    ulEl.innerHTML = listItems
+```
+The function moveghost it the MVP of this project
+
+```javascript
+function moveGhost(ghost){
+    console.log("moved ghost")
+    const directions = [-1, +1, -width, +width]
+    let direction = directions[Math.floor(Math.random() * directions.length)]
+    console.log(direction)
+
+    ghost.timerId = setInterval(function(){
+
+        //respect walls and respect ghosts
+        if( 
+            !squares[ghost.currentIndex + direction].classList.contains("wall") &&
+            !squares[ghost.currentIndex + direction].classList.contains("ghost")
+        ){
+            //remove any ghost
+            squares[ghost.currentIndex].classList.remove(ghost.className)
+            squares[ghost.currentIndex].classList.remove("ghost", "scared-ghost")
+            //add direction to current Index
+            ghost.currentIndex += direction
+            //add ghost class
+            squares[ghost.currentIndex].classList.add(ghost.className)
+            squares[ghost.currentIndex].classList.add("ghost")
+        } else {direction = directions[Math.floor(Math.random() * directions.length)]}
+
+        //if the ghost is currently scared
+        if(ghost.isScared){
+            squares[ghost.currentIndex].classList.add("scared-ghost")
+        }
+
+        //if the ghost is currently scared and pacman is on it
+        if(ghost.isScared && squares[ghost.currentIndex].classList.contains("pacman")){
+            //remove classname - ghost.className, ghsot, scared-ghost
+            squares[ghost.currentIndex].classList.remove(ghost.className, "ghost", "scared-ghost")
+            //cahnge ghost currentIndex back to its statsIndex
+            ghost.currentIndex = ghost.startIndex
+            //add a score of 100
+            score +=100
+            scoreDisplay.innerHTML=score
+            //readd classnames of ghos.className and ghost to the ghosts new position
+            squares[ghost.currentIndex].classList.add(ghost.className, "ghost")
+        }
+        checkGameOver()
+    }, ghost.speed)
+
 }
 ```
-Grabbing the current tab on chrome is much easier than it looks. Interesting is that how it actually make sence to have a tab be checked at the same time for "active" and currentWindow status. Maybe you have two broswers open... you want to select the tab you are using, not the one on the background.
-```js
-tabBtn.addEventListener("click", function(){    
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-        myLeads.push(tabs[0].url)
-        localStorage.setItem("myLeads", JSON.stringify(myLeads) )
-        render(myLeads)
-    })
-})
+Ghosts move around randomly like this:
+Pic a direction at random from a directions array (up, down, left or right)
+Check for walls or other ghosts(so they don't eat each other)
+If the square they are movin to is clear, the ghost class gets romoved from last place, and placed on next square
+
+```Javascript
+    const directions = [-1, +1, -width, +width]
+    let direction = directions[Math.floor(Math.random() * directions.length)]
+    ghost.timerId = setInterval(function(){
+
+        //respect walls and respect ghosts
+        if( 
+            !squares[ghost.currentIndex + direction].classList.contains("wall") &&
+            !squares[ghost.currentIndex + direction].classList.contains("ghost")
+        ){
+            //remove any ghost
+            squares[ghost.currentIndex].classList.remove(ghost.className)
+            squares[ghost.currentIndex].classList.remove("ghost", "scared-ghost")
+            //add direction to current Index
+            ghost.currentIndex += direction
+            //add ghost class
+            squares[ghost.currentIndex].classList.add(ghost.className)
+            squares[ghost.currentIndex].classList.add("ghost")
+        } else {direction = directions[Math.floor(Math.random() * directions.length)]}
+
 ```
-This saves the Leads after the tab is closed. Allowing for a much better extension. You don't have to keep it open in order to maintain the saved Leads.
-```js
-localStorage.setItem("myLeads", JSON.stringify(myLeads) )
+Every ghost has their own speed. So timerId gets called depending on that. The only behaviour I am not happy with at the moment is that checkGameOver() only gets called after a ghost moves. That mean that in order to lose the game, pacman has to wait for the ghost on top of him to move. At the moment I can move at lightining speed compared to the ghosts. Maybe in the future a simple speed up would get rid of it. But as it stands, you have to sit in place to lose.
+
+```javascript        
+    ghost.timerId = setInterval(function(){
+    .
+    .
+    .
+//if the ghost is currently scared and pacman is on it
+        if(ghost.isScared && squares[ghost.currentIndex].classList.contains("pacman")){
+            //remove classname - ghost.className, ghsot, scared-ghost
+            squares[ghost.currentIndex].classList.remove(ghost.className, "ghost", "scared-ghost")
+            //cahnge ghost currentIndex back to its statsIndex
+            ghost.currentIndex = ghost.startIndex
+            //add a score of 100
+            score +=100
+            scoreDisplay.innerHTML=score
+            //readd classnames of ghos.className and ghost to the ghosts new position
+            squares[ghost.currentIndex].classList.add(ghost.className, "ghost")
+        }
+        checkGameOver()
+    }, ghost.speed)
 ```
 
 ### Continued development
 
-The course is getting more and more interesting. I'm very surprised how educational coding a chrome extension (witha real world use) can be.
+Maybe in the future I'll make the ghosts chase pacman, instead of just wlaking randomly. Also, making them leave the pit faster? Or even adding music/sound effects. But I am not a AAA studio.
 
 
 ### Useful resources
 
-- [Select input color change](https://stackoverflow.com/questions/43427993/change-the-color-of-a-input-field-when-selected?rq=1) - Quick and sweet CSS trick
-- [.value](https://stackoverflow.com/questions/11563638/how-do-i-get-the-value-of-text-input-field-using-javascript) - This is always gonna be there. Grabbing the actual value the user is inputting on the browser. This will become second nature and it is nice to know how it works
-- [Clear textbox JavaScript](https://stackoverflow.com/questions/4135818/how-to-clear-a-textbox-using-javascript) - Very rarely we want the input field to keep what was just saved
-- [Open Link on another tab](https://www.freecodecamp.org/news/how-to-use-html-to-open-link-in-new-tab/) - target="_blank"
-- [Double click Event](https://techstacker.com/how-to-detect-double-clicks-with-vanilla-javascript/) - To avoid losing all your leads but accident, delete checks for double click before clearing localStorage
-- [Select current Tab Chrome](https://stackoverflow.com/questions/6718256/how-do-you-use-chrome-tabs-getcurrent-to-get-the-page-object-in-a-chrome-extensi) - Easier to go on SO than to go to the google official explanation
+- [e.key](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key) - New format for capturing keypresses and controll pacman with the keyboard arrows
+
 
 ## Author
 
