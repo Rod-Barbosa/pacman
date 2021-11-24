@@ -1,6 +1,6 @@
-# Scrimba Frontend Career Path - (Leads Saver Chrome Extension - Module 03)
+# Scrimba Frontend Career Path - (Pacman - Module 06)
 
-This is a solution to the [Scrimba Frontend Career Path - (Module/App name here)](https://scrimba.com/learn/frontend).
+This is a solution to the [Scrimba Frontend Career Path - (Module 06/Pacman game)](https://scrimba.com/learn/frontend).
 
 ## Table of contents
 
@@ -21,28 +21,36 @@ This is a solution to the [Scrimba Frontend Career Path - (Module/App name here)
 
 ### The challenge
 
-Represent your personality with emojis
+Make a pacman game
 
 Users should be able to Code/Understand:
 
-- const
 - addEventListener()
+- getElementById()
+- querySelector()
+- length
+- createElement()
+- appendChild()
+- push()
+- classList.add()
+- classList.remove()
+- leyCode
+- classList.contain()
 - innerHTML
-- input.value
-- fucntion parameters
-- template strings
-- localStorage
-- The JSON object
-- objects in arrays
+- setTimeout()
+- forEach()
+- class
+- this
+- constructor()
+- setInterval()
+- Math.floor()
+- Math.random()
 
 ### Screenshot
 
-![](./initial.png)
-![](./saveTab1.png)
-![](./saveTab2.png)
-![](./delete.png)
-
-
+![](./start.png)
+![](./lose.png)
+![](./win.png)
 
 ### Links
 
